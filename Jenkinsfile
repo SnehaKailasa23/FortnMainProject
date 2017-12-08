@@ -1,10 +1,14 @@
 /************************ Environment Variables **************************/
+def robot_result_folder = ""
+
 //Artifactory server instance declaration	
-def server = Artifactory.server 'art1' //art1 is the Server ID given to Artifactory server in Jenkins
+def server = Artifactory.server 'art1' //server1 is the Server ID given to Artifactory server in Jenkins
 
 //buildInfo variable
 def buildInfo = 'null'
-
+	
+//Creating an Artifactory Maven Build instance
+def rtMaven = Artifactory.newMavenBuild()
 
 
 /******************** Notifying SUCCESSFUL buildInfo **********************/
@@ -29,7 +33,7 @@ emailext (
 	<p>
 		<br><br><br><br><br><br><br> <!-- Artifactory Details -->
 		<h2 style=\'color:#e46c0a; font-family: Candara;\'>Artifactory Details</h2>
-		<b style=\'font-family: Candara;\'>${BUILD_LOG_REGEX, regex="http://padlcicdggk4.sw.fortna.net:8088/artifactory/webapp/*", linesBefore=0, linesAfter=0, maxMatches=1, showTruncatedLines=false, escapeHtml=true}<b>
+		<b style=\'font-family: Candara;\'>${BUILD_LOG_REGEX, regex="http://13.115.67.203:8081/artifactory/webapp/*", linesBefore=0, linesAfter=0, maxMatches=1, showTruncatedLines=false, escapeHtml=true}<b>
 		<br>
 	</p>
 	<p>
@@ -44,57 +48,77 @@ emailext (
 )
 }
 
-node {
 
+node {
+     
 	/*************** Git Checkout ***************/
 	stage ('Checkout') {
-	checkout scm	
+		checkout scm	
 	}
 
-	/*************** Building the application and Deploying/Downloading Artifacts to/from Artifactory ***************/
-	stage ('Build and Deploy Artifacts') {
-		
-		//Creating an Artifactory Maven Build instance
-		def rtMaven = Artifactory.newMavenBuild()
-		
+	/*************** Building the application ***************/
+	stage ('Building application') {
+	
 		//Downloading dependencies
 		//rtMaven.resolver server: server, releaseRepo: 'fortna_release', snapshotRepo: 'fortna_snapshot'
 		
 		//Deploying artifacts to this repo
-		rtMaven.deployer server: server, releaseRepo: 'fortna_release', snapshotRepo: 'fortna_snapshot'
+		rtMaven.deployer server: server, releaseRepo: 'fortna_sample'
 		
 		//Includes and excludes option
 		//rtMaven.deployer.artifactDeploymentPatterns.addInclude("frog*").addExclude("*.zip")
 		
 		//Disabling artifacts deployment to Artifactory
-		//rtMaven.deployer.deployArtifacts = false
+		rtMaven.deployer.deployArtifacts = false
 		
 		//Defining maven tool 
 		rtMaven.tool = 'maven'
 		
 		/*************** Build Step ***************/
-		withSonarQubeEnv {
+		//withSonarQubeEnv {
 			def mvn_version = tool 'maven'
 			echo "${mvn_version}"
 			withEnv( ["PATH+MAVEN=${mvn_version}/bin"] ) {
-				buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean package -Dmaven.test.skip=true $SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.projectKey="$JOB_NAME" -Dsonar.projectName="$JOB_NAME"'
+				buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean package -Dmaven.test.skip=true'// $SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.projectKey="$JOB_NAME" -Dsonar.projectName="$JOB_NAME"'
 				
-			}
-		}
+		//	}
+		}}
+		/*************** Robot Frame work results ***************/
+		stage ('Deploying and RFW') {
 		/*******Locking Resource ********/
-		lock('my-resource-name') {
+		lock('Compose-resource-lock') {
 		/*************** Docker Compose ***************/
 		sh '''docker-compose up -d
 			./clean_up.sh'''
-		}
+			def content = readFile './.env'
+  			Properties properties = new Properties()
+  			InputStream contents = new ByteArrayInputStream(content.getBytes());
+  			properties.load(contents)
+  			contents = null
+			  robot_result_folder = properties.robot_result_folder
+						step([$class: 'RobotPublisher',
+				outputPath: "/home/robot/${robot_result_folder}",
+				passThreshold: 50,
+				unstableThreshold: 50,
+				otherFiles: ""])
+				if("${currentBuild.result}" == "FAILURE")
+         {
+             sh "exit 1"
+         }
+				
+		}}
+		/*************** Pushing the artifacts***************/
+		stage ('Pushing artifacts')
+		{
+			echo "${BUILD_STATUS}"
 		/*************** Publishing buildInfo to Artifactory ***************/
 		rtMaven.deployer.deployArtifacts buildInfo	//this should be disabled when depoyArtifacts is set to false. Otherwise, this will publish the Artifacts.
 		server.publishBuildInfo buildInfo
-		
-	}
+		}
 	
 	/*************** Build Promotion Section ***************/
-	stage ('Build Promotions') {
+	
+    stage ('Build Promotions') {
 		def promotionConfig = [
 			// Mandatory parameters
 			'buildName'          : buildInfo.name,
@@ -123,15 +147,8 @@ node {
 		sleep 10s'''
 	}
 	
-	stage ('Robot FrameWork Results') {
-		step([$class: 'RobotPublisher',
-		outputPath: '/home/robot/results',
-		passThreshold: 50,
-		unstableThreshold: 50,
-		otherFiles: ""])
-	}
 	
 	stage ('Email Notifications') {
-		notifySuccessful()
+		notifySuccessful() 
 	}
 }
