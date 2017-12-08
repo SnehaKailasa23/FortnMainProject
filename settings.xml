@@ -1,0 +1,132 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<mirrors>
+		<mirror>
+			<id>Maven Central</id>
+			<name>MavenCentral</name>
+			<url>http://central.maven.org/maven2/</url>
+			<mirrorOf>central</mirrorOf>
+		</mirror>
+	</mirrors>						  
+							  
+    <profiles>
+        <profile>
+            <id>fortna</id>
+            <properties>
+                <!-- Company Properties -->
+
+                <artifactory.url>http://repo.wcs.fortna.net/artifactory</artifactory.url>
+                <fortna-libs-release-repo>${artifactory.url}/libs-release-local</fortna-libs-release-repo>
+                <fortna-libs-snapshot-repo>${artifactory.url}/libs-snapshot-local</fortna-libs-snapshot-repo>
+
+                <svn.prefix>http://svn.wcs.fortna.net/repo/</svn.prefix>
+                <scm.connection.prefix>scm:svn:http://svn.wcs.fortna.net/repo/</scm.connection.prefix>
+                <scm.developerConnection.prefix>scm:svn:http://svn.wcs.fortna.net/repo/</scm.developerConnection.prefix>
+                <scm.url.prefix>http://websvn.wcs.fortna.net/</scm.url.prefix>
+            </properties>
+
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <url>${fortna-libs-release-repo}</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+
+                <repository>
+                    <id>snapshots</id>
+                    <url>${fortna-libs-snapshot-repo}</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                </repository>
+            </repositories>
+        </profile>
+
+        <!-- CICD Profile -->
+        <profile>
+            <properties>
+                <!-- Company Properties -->
+				
+                <artifactory.url>http://padlcicdggk4.sw.fortna.net/artifactory</artifactory.url>
+
+                <libs.release.url>${artifactory.url}/fortna-product-repo-release</libs.release.url>
+                <libs.snapshots.url>${artifactory.url}/fortna-product-repo-snapshot</libs.snapshots.url>
+				
+				<libs.release.url.local>${artifactory.url}/fortna-product-libs-release-local</libs.release.url.local>
+                <libs.snapshots.url.local>${artifactory.url}/fortna-product-libs-snapshot-local</libs.snapshots.url.local>
+				
+				<plugins.release.url.local>${artifactory.url}/fortna-product-plugins-release-local</plugins.release.url.local>
+                <plugins.snapshots.url.local>${artifactory.url}/fortna-product-plugins-snapshot-local</plugins.snapshots.url.local>
+
+            </properties>
+            <repositories>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>	
+                    <id>central</id>
+                    <name>fortna-core-release</name>
+                    <url>${libs.release.url}</url>
+                </repository>
+                <repository>
+                    <snapshots>
+						<enabled>true</enabled>
+						<updatePolicy>always</updatePolicy>
+						<checksumPolicy>fail</checksumPolicy>
+					</snapshots>
+					<releases>
+						<enabled>false</enabled>
+					</releases>	
+                    <id>snapshots</id>
+                    <name>fortna-core-snapshots</name>
+                    <url>${libs.snapshots.url}</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+				<pluginRepository>
+                    <id>plugins-release</id>
+                    <url>${libs.release.url}</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>plugins-snapshot</id>
+                    <url>${libs.snapshots.url}</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                </pluginRepository>				
+            </pluginRepositories>
+            <id>cicd</id>
+        </profile>
+        <!-- CICD Profile -->
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>cicd</activeProfile>
+        <activeProfile>fortna</activeProfile>
+    </activeProfiles>
+
+    <servers>
+
+        <server>
+            <username>tnguyen</username>
+            <password>AP3MXSU3BD7AqGLP</password>
+            <id>central</id>
+        </server>
+        <server>
+            <username>tnguyen</username>
+            <password>AP3MXSU3BD7AqGLP</password>
+            <id>snapshots</id>
+        </server>
+
+    </servers>
+</settings>
