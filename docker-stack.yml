@@ -1,0 +1,42 @@
+version: '3'
+services:
+  cpservice:
+    image: cp_image_name
+    environment:
+      db_details: details
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == node
+    ports:
+      - "8090:8080"
+    networks:
+      frontend:
+        aliases:
+          - cpserver
+    extra_hosts:
+      - "dbserver:ip"
+    depends_on:
+      - omservice
+    command: >
+      sh -c "
+       /wait-for-it.sh
+       "
+  omservice:
+    image: om_image_name
+    volumes:
+      - /home/ubuntu/swarm-docker/test:/mock_mapping
+    environment:
+      - RUNNING_PORT=38080
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == node
+    networks:
+      frontend:
+        aliases:
+            - omserver
+
+networks:
+  frontend:
+
