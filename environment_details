@@ -1,0 +1,7 @@
+qa_server=ip-172-31-20-26
+qa_db_pass=cicd_sample
+qa_db_ip=13.230.47.186
+uat_server=ip-172-31-30-55
+uat_db_pass=cicd_sample
+uat_db_ip=13.230.47.186
+

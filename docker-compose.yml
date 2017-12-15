@@ -28,14 +28,15 @@ services:
       args:
         jarfile_name: ${jarfile_name}
         port: ${port}
-        db_details: ${db_details}
+    environment:
+      db_details: ${db_details}
     image: ${cp_image_name}
     networks:
       frontend:
         aliases:
           - cpserver
     extra_hosts:
-      - "dbserver:52.67.80.187"
+      - "dbserver:13.230.47.186"
     depends_on:
       - omservice
     command: >
