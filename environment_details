@@ -6,4 +6,4 @@ uat_db_pass=cicd_sample
 uat_db_ip=13.230.47.186
 cp_image=swamykonanki/cp_image
 om_image=swamykonanki/om_image
-
+port_number=9011
