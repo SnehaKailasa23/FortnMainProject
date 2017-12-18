@@ -9,7 +9,7 @@ services:
         constraints:
           - node.hostname == NODE
     ports:
-      - "8090:8080"
+      - "PORT:8080"
     networks:
       frontend:
         aliases:
