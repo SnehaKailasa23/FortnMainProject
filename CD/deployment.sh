@@ -11,9 +11,9 @@ for i in `grep -e $1 -e global environment_details`; do
  c=`cut -d '=' -f2 <<<$a`
  if [[ $b == *IMAGENAME ]];
  then
- sed -i "s|$b|$c:$2|g" docker-stack.yml_tmp
+ sed -i "s|$b|$c:$2|g" docker-stack.yml
  fi
- sed -i "s|$b|$c|g" docker-stack.yml_tmp
+ sed -i "s|$b|$c|g" docker-stack.yml
 done
 ###########starting docker stack#######
 App_status=`docker stack ps $3`
