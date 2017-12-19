@@ -22,3 +22,4 @@ if [ ! -z "$App_status" ];
 then
   docker stack rm $3
 fi
+docker stack deploy -c docker-stack.yml $3
