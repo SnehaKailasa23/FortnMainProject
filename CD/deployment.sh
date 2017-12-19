@@ -1,8 +1,8 @@
 #!/bin/bash
 ############replacing docker-stack.yml varibles
 
-##$1 is environment
-##$2 is version
+##$1 is environment varible
+##$2 is version number
 ##$3 is app name
 
 for i in `grep -e $1 -e global environment_details`; do
