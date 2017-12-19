@@ -1,7 +1,7 @@
 version: '3'
 services:
   cpservice:
-    image: CPIMAGE
+    image: CPIMAGENAME
     environment:
       db_details: DBPASSWORD
     deploy:
@@ -23,7 +23,7 @@ services:
        /wait-for-it.sh
        "
   omservice:
-    image: OMIMAGE
+    image: OMIMAGENAME
     volumes:
       - /home/ubuntu/swarm-docker/test:/mock_mapping
     environment:
