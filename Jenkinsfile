@@ -44,18 +44,19 @@ emailext (
 
 /****************************** Jenkinsfile execution starts here ******************************/
 node {
+	/****************************** Git Checkout Stage ******************************/
+		stage ('Checkout') {
+			Reason = "GIT Checkout Failed"
+			checkout scm
+		}	//Checkout SCM stage ends
+      
 	def content = readFile './.env'				// variable to store .env file contents
 	Properties docker_properties = new Properties()	// creating an object for Properties class
 	InputStream contents = new ByteArrayInputStream(content.getBytes());	// storing the contents
 	docker_properties.load(contents)	
 	contents = null
 	try {
-/****************************** Git Checkout Stage ******************************/
-		stage ('Checkout') {
-			Reason = "GIT Checkout Failed"
-			checkout scm
-		}	//Checkout SCM stage ends
-      
+
 // assigning the jarname to this variable aquired from pom.xml by below function //
 		def jar_name = getMavenBuildArtifactName()
 
