@@ -3,7 +3,7 @@ node {
     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/boga5/java-rpm-example.git']]])
 	}	//Checkout SCM stage ends
 	
-	def content = readFile './.env'				// variable to store .env file contents
+	def content = readFile './env'				// variable to store .env file contents
 	Properties env_properties = new Properties()	// creating an object for Properties class
 	InputStream contents = new ByteArrayInputStream(content.getBytes());	// storing the contents
 	env_properties.load(contents)	
