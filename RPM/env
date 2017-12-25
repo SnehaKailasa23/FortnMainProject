@@ -1,7 +1,0 @@
-source_rpm_location=$WORKSPACE/target/*.tar.gz
-remote_user=ec2-user
-remote_ip=52.67.240.55
-remote_rpm_location=/var/ggk/
-snapshot_repo=fortna-rpm
-release_repo=fortna-rpm
-package_name=myservice*.gz
