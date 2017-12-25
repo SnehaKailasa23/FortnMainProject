@@ -1,0 +1,3 @@
+snapshot_repo=fortna-rpm
+release_repo=fortna-rpm
+package_name=wes-cartpicking*
