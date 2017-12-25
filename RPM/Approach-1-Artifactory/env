@@ -1,3 +1,5 @@
 snapshot_repo=fortna-rpm
 release_repo=fortna-rpm
+deploy_user=ggk_sboga
+deploy_ip=10.240.17.12
 package_name=wes-cartpicking*
