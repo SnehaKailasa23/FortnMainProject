@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sudo yum clean all
-sudo yum repolist all
+yum clean all
+yum repolist all
 sudo yum install $1
