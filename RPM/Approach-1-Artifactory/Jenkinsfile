@@ -5,8 +5,8 @@ def Reason = "JOB FAILED"					// variable to display the build failure reason
 
 node {
 	stage ('Checkout') {
-		checkout scm
-		//checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'c0c5e22f-9121-4734-922d-d8bfb1c4e339', url: 'https://padlgithubggk1.sw.fortna.net/FortnaWES/wes-cartpicking-rpm.git']]])
+		//checkout scm
+		checkout([$class: 'GitSCM', branches: [[name: '*/Test']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'c0c5e22f-9121-4734-922d-d8bfb1c4e339', url: 'https://padlgithubggk1.sw.fortna.net/FortnaWES/wes-cartpicking-rpm.git']]])
 	}	//Checkout SCM stage ends
 	
 	def content = readFile './env'				// variable to store env file contents
@@ -32,6 +32,8 @@ node {
 	} //artifact stage ends
 	
 	stage ('Application Deployment') {
-		sh """ssh -T ${env_properties.deploy_user}@${env_properties.deploy_ip} 'bash -s' < $WORKSPACE/deploy.sh ${env_properties.package_name} """
+		sh """cd $WORKSPACE
+		chmod u+x deploy.sh
+		ssh -T ${env_properties.deploy_user}@${env_properties.deploy_ip} 'bash -s' < deploy.sh ${env_properties.package_name} """
 	}	//Application deployment stage ends
 } //node ends
