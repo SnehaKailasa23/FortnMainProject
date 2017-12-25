@@ -1,0 +1,7 @@
+source_rpm_location=$WORKSPACE/target/*.tar.gz
+remote_user=ec2-user
+remote_ip=18.231.42.191
+remote_rpm_location=/var/ggk/
+deploy_user=ec2-user
+deploy_ip=52.67.240.55
+package_name=myservice*.gz
