@@ -1,6 +1,7 @@
-source_rpm_location=/var/lib/jenkins/workspace/$JOB_NAME/target/*.rpm
+source_rpm_location=$WORKSPACE/target/*.tar.gz
 remote_user=ec2-user
 remote_ip=54.207.118.205
 remote_rpm_location=/var/ggk/
 snapshot_repo=fortna-rpm
 release_repo=fortna-rpm
+package_name=wes-cartpicking*
