@@ -17,46 +17,32 @@ def getMavenBuildArtifactName() {
 // Email Notifications template when Build succeeds //
 def notifySuccessful(){
 emailext (
- attachLog: true, attachmentsPattern: '*.html, output.xml', body: '''<span style=\'line-height: 22px; font-family: Candara; padding: 10.5px; font-size: 15px; word-break: break-all; word-wrap: break-word; \'>
- <h1><FONT COLOR=Green>$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS</FONT></h1><h2 style=\'color:#e46c0a\'>GitHub Details</h2>
- <B>${BUILD_LOG_REGEX, regex="Started by ", linesBefore=0, linesAfter=1, maxMatches=1, showTruncatedLines=false, escapeHtml=true}<br>
- ${BUILD_LOG_REGEX, regex="Checking out Revision", linesBefore=0, linesAfter=1, maxMatches=1, showTruncatedLines=false, escapeHtml=true}</B>
-  <table><tr><td><!-- ${SCRIPT, template="unit_test_results.groovy"} --></td></tr>
- <tr><td>${SCRIPT, template="sonarqube_template.groovy"}</td></tr>
- <tr><td><h2 style=\'color:#e46c0a; font-family: Candara;\'>Artifactory Details</h2></td></tr>
- <tr><td><b style=\'font-family: Candara;\'>${BUILD_LOG_REGEX, regex="http://padlcicdggk4.sw.fortna.net:8088/artifactory/webapp/*", linesBefore=0, linesAfter=0, maxMatches=1, showTruncatedLines=false, escapeHtml=true}</td></tr>
- <tr><td>${SCRIPT, template="robotframework_template_tmp.groovy"}</td></tr>
- <tr><td><a href="$BUILD_URL">Click Here</a> to view build result</h2><br><h3>Please find below, the build logs and other files.</td></tr></table>
- </span>''', subject: '$DEFAULT_SUBJECT', to: 'sneha.kailasa@ggktech.com, yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com'
+ attachLog: true, attachmentsPattern: '*.html, output.xml', body: '''
+ ${SCRIPT, template="email_template.groovy"}''', subject: '$DEFAULT_SUBJECT', to: 'yerriswamy.konanki@ggktech.com'
  )
 }
  
 // Email Notifications template when Build fails //
 def notifyFailure(def Reason){
+println "Failed Reason: ${Reason}"
 emailext (
-	attachLog: true, attachmentsPattern: '*.html, output.xml', body: """<span style=\'line-height: 22px; font-family: Candara; padding: 10.5px; font-size: 15px; word-break: break-all; word-wrap: break-word; \'>
-	<h1><FONT COLOR=red>\$PROJECT_NAME - Build # \$BUILD_NUMBER - \$BUILD_STATUS</FONT></h1>
-	<h2>${Reason}</h2>
-  	<p><h2><a href="\$BUILD_URL">Click Here</a> to view build result</h2><br><h3>Please find below, the build logs and other files.</h3></p>
-	</span>""", subject: '$DEFAULT_SUBJECT', to: 'sneha.kailasa@ggktech.com, sunil.boga@ggktech.com'
+	attachLog: true, attachmentsPattern: '*.html, output.xml', body: '''${SCRIPT, template="email_template_failure.groovy"}''', subject: '$DEFAULT_SUBJECT', to: 'yerriswamy.konanki@ggktech.com'
 	)
 }
 
 /****************************** Jenkinsfile execution starts here ******************************/
 node {
-	/****************************** Git Checkout Stage ******************************/
+	try {
+/****************************** Git Checkout Stage ******************************/
 		stage ('Checkout') {
 			Reason = "GIT Checkout Failed"
 			checkout scm
-		}	//Checkout SCM stage ends
-      
-	def content = readFile './.env'				// variable to store .env file contents
-	Properties docker_properties = new Properties()	// creating an object for Properties class
-	InputStream contents = new ByteArrayInputStream(content.getBytes());	// storing the contents
-	docker_properties.load(contents)	
-	contents = null
-	try {
-
+			}	//Checkout SCM stage ends
+      	def content = readFile './.env'				// variable to store .env file contents
+		Properties docker_properties = new Properties()	// creating an object for Properties class
+		InputStream contents = new ByteArrayInputStream(content.getBytes());	// storing the contents
+		docker_properties.load(contents)	
+		contents = null
 // assigning the jarname to this variable aquired from pom.xml by below function //
 		def jar_name = getMavenBuildArtifactName()
 
@@ -66,14 +52,12 @@ node {
             JobName = "${JOB_NAME}"
 			if("${BRANCH_NAME}".startsWith('PR-'))
 			{
-                def index = JobName.indexOf("/");
-				lock_resource_name = JobName.substring(0 , index)+"_"+"${CHANGE_TARGET}"
+             	lock_resource_name = JobName.substring(0 , JobName.indexOf("/"))+"_"+"${CHANGE_TARGET}"
                 Sonar_project_name = lock_resource_name + "PR"
 			}
 			else
 			{
-				 def index = JobName.indexOf("/");
-				 lock_resource_name = JobName.substring(0 , index)+"_"+"${BRANCH_NAME}"
+				 lock_resource_name = JobName.substring(0 , JobName.indexOf("/"))+"_"+"${BRANCH_NAME}"
 				 Sonar_project_name = lock_resource_name
 			} 
 		}	// Reading branch variable stage ends
@@ -98,7 +82,7 @@ node {
 			Reason = "Docker Deployment or Robot Framework Test cases Failed"
 			lock(lock_resource_name) {
 				// Docker Compose starts // 
-				sh "jarfile_name=${jar_name} /usr/local/bin/docker-compose up -d"
+				//sh "jarfile_name=${jar_name} /usr/local/bin/docker-compose up -d"
 				sh "sudo chmod 777 wait_for_robot.sh "
                 sh './wait_for_robot.sh'
 				robot_result_folder = docker_properties.robot_result_folder
@@ -107,16 +91,21 @@ node {
 					passThreshold: 0,
 					unstableThreshold: 0,
 					otherFiles: ""])
+					println "outside"
 				// If Robot Framework test case fails, then the build will be failed //	
 				if("${currentBuild.result}" == "FAILURE")
 					 {	
-						 sh ''' ./clean_up.sh
-                         exit 1'''
+                         sh ''' ./clean_up.sh
+                         echo "after cleanup"
+						 exit 1'''
 					 } 
 				// If it is a GitHub PR job, then this part doesn't execute //					 
+			stage('Pushing Artifacts')
+				{
+                Reason = "Pushing Artifacts stage failed"
 				if(!(JobName.contains('PR-')))
 				{
-					 // ***** Stage for Deploying artifacts to Artifactory ***** //				
+                    // ***** Stage for Deploying artifacts to Artifactory ***** //				
 					stage ('Artifacts Deployment'){		
 						Reason = "Artifacts Deployment Failed"
 						rtMaven.deployer.deployArtifacts buildInfo
@@ -124,31 +113,21 @@ node {
 					}
 					// ***** Stage for Publishing Docker images ***** //							
 					stage ('Publish Docker Images'){
-						Reason = "Publish Docker Images Failed"
-						def cp_index = docker_properties.cp_image_name.indexOf(":");								
-						def cpImageName = docker_properties.cp_image_name.substring(0 , cp_index)+":latest"
-						def om_index = docker_properties.om_image_name.indexOf(":");
-						def omImageName = docker_properties.om_image_name.substring(0 , om_index)+":latest"
-						sh """
-							docker tag ${docker_properties.om_image_name} ${docker_properties.Docker_Reg_Name}/${docker_properties.om_image_name}
-							docker tag ${docker_properties.om_image_name} ${docker_properties.Docker_Reg_Name}/${omImageName}
-							docker tag ${docker_properties.cp_image_name} ${docker_properties.Docker_Reg_Name}/${docker_properties.cp_image_name}
-							docker tag ${docker_properties.cp_image_name} ${docker_properties.Docker_Reg_Name}/${cpImageName}
-							"""
-							docker.withRegistry("${docker_properties.Docker_Registry_URL}", "${docker_properties.Docker_Credentials}"){
-								def customImage1 = docker.image("${docker_properties.Docker_Reg_Name}/${docker_properties.om_image_name}")
-								customImage1.push()
-								def customImage2 = docker.image("${docker_properties.Docker_Reg_Name}/${omImageName}")
-								customImage2.push()
-								def customImage3 = docker.image("${docker_properties.Docker_Reg_Name}/${docker_properties.cp_image_name}")
-								customImage3.push()
-								def customImage4 = docker.image("${docker_properties.Docker_Reg_Name}/${cpImageName}")
-								customImage4.push()
+						Reason = "Publish Docker Images Failed"								
+						def images = []
+						images[0] = "${docker_properties.Docker_Reg_Name}/${docker_properties.om_image_name}"
+						images[1] = "${docker_properties.Docker_Reg_Name}/${docker_properties.cp_image_name}"
+		 				docker.withRegistry("${docker_properties.Docker_Registry_URL}", "${docker_properties.Docker_Credentials}") {
+             						images.each { def image ->
+								docker.image("${image}").push("${docker_properties.image_version}")
+								docker.image("${image}").push("latest")
+        							}
 							}
-							sh """docker logout""" 
+						sh """docker logout
+							""" 
 					
 					}  //Docker publish stage ends here
-				
+					
 					// ***** Stage for triggering CD pipeline ***** //				
 					stage ('Starting QA job') {
 					Reason = "Trriggering downStream Job Failed"
@@ -156,12 +135,13 @@ node {
 		   			 	build job: CD_Job_name//, parameters: [[$class: 'StringParameterValue', name: 'var1', value: 'var1_value']]
 					} 
 				}     //if loop
+				}
 				sh './clean_up.sh'	
 			}   //lock			
 		}		// Docker Deployment and RFW stage ends here //
 
 /****************************** Stage for artifacts promotion ******************************/
-/*		stage ('Build Promotions') {
+	/*	stage ('Build Promotions') {
 			Reason = "Build Promotions Failed"
 			def promotionConfig = [
 				// Mandatory parameters
@@ -180,18 +160,19 @@ node {
 	 
 			// Interactive promotion of Builds in Artifactory server from Jenkins UI //
 			Artifactory.addInteractivePromotion server: server, promotionConfig: promotionConfig, displayName: "Promotions Time" //this need human interaction to promote
-		}
-	*/
+		} */
+		
 /****************************** Stage for creating reports for SonarQube Analysis ******************************/
 		stage ('Reports creation') {
 			Reason = "Reports creation Failed"
-						sh """ echo ${Sonar_project_name} 
-			curl "http://10.240.17.12:9000/sonar/api/resources?resource=${Sonar_project_name}&metrics=bugs,vulnerabilities,code_smells,duplicated_blocks" > output.json
-			"""
-		}
-
+			sh """ curl "http://10.240.17.12:9000/sonar/api/resources?resource=${Sonar_project_name}&metrics=bugs,vulnerabilities,code_smells,duplicated_blocks" > output.json """
+		} 
+		
 /****************************** Stage for sending Email Notifications when Build succeeds ******************************/	
 		stage ('Email Notifications') {
+           	properties([
+            [$class: 'EnvInjectJobProperty', info: [loadFilesFromMaster: false, propertiesContent: "JobWorkSpace=${WORKSPACE}"], keepBuildVariables: true, keepJenkinsSystemVariables: true, on: true]
+  ])
 			notifySuccessful() 
 		}
 	}
@@ -200,6 +181,9 @@ catch(Exception e)
 	{
 		sh './clean_up.sh'
 		currentBuild.result = "FAILURE"
+			properties([
+            [$class: 'EnvInjectJobProperty', info: [loadFilesFromMaster: false, propertiesContent: "Reason=${Reason}"], keepBuildVariables: true, keepJenkinsSystemVariables: true, on: true]
+  ])
 		notifyFailure(Reason)
 		sh 'exit 1'
 	}
