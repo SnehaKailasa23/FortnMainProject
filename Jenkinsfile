@@ -13,7 +13,8 @@ node {
 	{
 		stage('Checkout') {
 			Reason = "Checkout SCM stage Failed"
-			checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'c0c5e22f-9121-4734-922d-d8bfb1c4e339', url: 'https://padlgithubggk1.sw.fortna.net/FortnaWES/SampleProjectForCICD.git']]]
+			checkout scm
+			//checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'c0c5e22f-9121-4734-922d-d8bfb1c4e339', url: 'https://padlgithubggk1.sw.fortna.net/FortnaWES/SampleProjectForCICD.git']]]
 		}
 			
 		def content = readFile './.env'    // variable to store .env file contents
@@ -37,7 +38,7 @@ node {
 		stage('Docker Deployment and RFW') {
 			lock(VariableObject.lock_resource_name) {
 				Reason = "RFW stage failed"
-				//RFW(docker_properties.robot_result_folder, rtMaven, server, jar_name)
+				RFW(docker_properties.robot_result_folder, rtMaven, server, jar_name)
 				stage('Pushing Artifacts') {
 					Reason = "Pushing Artifacts stage failed"
 					if(!(VariableObject.JobName.contains('PR-'))) {
