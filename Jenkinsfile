@@ -1,4 +1,22 @@
 @Library('sample1') _
+node{
+    Jenkins_File ( 
+        ArtifactoryServerName: 'art1',
+        snapshot_repo: 'fortna_snapshot', 
+        release_repo: 'fortna_release', 
+        Docker_Reg_Name: 'swamykonanki', 
+        Docker_Registry_URL: 'https://index.docker.io/v1/', 
+        Docker_Credentials: 'DockerCredentialsID',
+        CDEnvironment: '_QA', 
+        recipients: 'yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com'
+    )
+}
+
+
+
+/******************* Old Jenkinsfile with Shared Library concept in each stage **********************/
+
+/* @Library('sample1') _
 def JobName	= null						    // variable to get jobname  
 def Sonar_project_name = null 				// varibale passed as SonarQube parameter while building the application
 def robot_result_folder = null 				// variable used to store Robot Framework test results
@@ -79,3 +97,4 @@ node {
 		sh 'exit 1'
 	}
 }
+*/
