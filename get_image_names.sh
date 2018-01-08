@@ -1,3 +1,4 @@
+#!/bin/bash
 j=0
 for i in `grep -n "image" .env`; do
 if [[ $i != *"robot"* ]]; then
