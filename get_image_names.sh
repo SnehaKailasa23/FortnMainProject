@@ -3,7 +3,7 @@ j=0
 for i in `grep -n "image" .env`; do
 if [[ $i != *"robot"* ]]; then
 Images[$j]=`cut -d '=' -f2 <<<$i`
-j=$((j++))
+j=`expr $j+1`
 fi
 done
 for z in "${Images[@]}"; do
