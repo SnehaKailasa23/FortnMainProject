@@ -1,7 +1,7 @@
 @Library('sample1') _
 node{
     Jenkins_File ( 
-        ArtifactoryServerName: 'art1',
+        ArtifactoryServerName: 'server1',
         snapshot_repo: 'fortna_snapshot', 
         release_repo: 'fortna_release', 
         Docker_Reg_Name: 'swamykonanki', 
