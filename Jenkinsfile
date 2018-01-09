@@ -4,14 +4,13 @@ node{
         ArtifactoryServerName: 'server1',
         snapshot_repo: 'fortna_snapshot', 
         release_repo: 'fortna_release', 
-        Docker_Reg_Name: 'swamykonanki', 
         Docker_Registry_URL: 'https://index.docker.io/v1/', 
         Docker_Credentials: 'DockerCredentialsID',
-        CDEnvironment: '_QA', 
+        CDEnvironment: 'QA', 
+        image_version: '10',
         recipients: 'yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com'
     )
 }
-
 
 
 /******************* Old Jenkinsfile with Shared Library concept in each stage **********************/
