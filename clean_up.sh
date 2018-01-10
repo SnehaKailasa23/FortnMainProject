@@ -38,7 +38,9 @@ echo "$Image_status"
 if [ ! -z "$Image_status" ];
 then
         if [[ $i != *"robot"* ]]; then
+            if [[ ! -z `docker images $Docker_Reg_Name/$i:${image_version}` ]]; then 
                 docker rmi -f $Docker_Reg_Name/$i:${image_version}
+            fi
                 docker rmi -f $Docker_Reg_Name/$i
         else
                 docker rmi -f $i
