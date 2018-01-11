@@ -7,7 +7,8 @@ node{
         Docker_Registry_URL: 'https://index.docker.io/v1/', 
         Docker_Credentials: 'DockerCredentialsID',
         CDEnvironment: 'QA', 
-        recipients: 'yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com'
+        success_recipients: 'yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com',
+	failed_recipients: 'yerriswamy.konanki@ggktech.com, sunil.boga@ggktech.com'
     )
 }
 
